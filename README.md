@@ -26,3 +26,6 @@ http://people.eecs.berkeley.edu/~mlustig/Software.html.
 
 All rights/distribution are the same as for the original code,
 and should cite the original author and webpage.
+
+## DOI
+[![DOI](https://zenodo.org/badge/145603994.svg)](https://zenodo.org/badge/latestdoi/145603994)
