@@ -8,12 +8,6 @@ Written by Siddharth Iyer. Please feel free to post an issue on the repository p
 This code may be freely used and modified for educational, research, and not-for-profit purposes (See
 [`LICENSE`](LICENSE) for more information).
 
-## Structure
-
-- `dem_code` contains code used to generate the data in Figure 1.
-- `exp_code` contains code used to generate the data in Figure 4.
-- `fig_code` consists for helper functions to generate the figures themselves.
-
 ## Acknowledgements
 
 Divergence code in `utils/svWeightsSure.m` was obtained and modified from
