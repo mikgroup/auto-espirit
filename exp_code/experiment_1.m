@@ -15,7 +15,7 @@ addpath('../utils/', '../');
 %% Common variables
 
 r     = 24;
-stdev = 10;
+stdev =  4;
 
 X  = readcfl('../data/brain_clean');
 Y  = readcfl('../data/brain_noise');
@@ -36,8 +36,8 @@ lst_c = 0:0.01:0.99;
 lst_w = 0:1/(fix_k^2):nc;
 
 fileID = fopen('log/log_experiment_1.txt', 'w');
-[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam] = ...
-    compareMSE(fileID, X, Y, r, false, stdev, fix_k, lst_c, lst_w);
+[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, ~] = ...
+  compareMSE(fileID, X, Y, r, false, stdev, fix_k, lst_c, lst_w);
 fclose(fileID);
 
 save('res/experiment_1_results.mat', 'lst_k', 'lst_c', 'lst_w', 'trueMSE', 'trueOptParam', 'sureFullMSE', 'sureFullOptParam', 'sureCalMSE', 'sureCalOptParam');

@@ -8,18 +8,12 @@ import numpy as np
 from matplotlib import colors, ticker, cm
 from scipy.io import loadmat
 from math import ceil, floor, log10
+from os.path import isfile
 
-matplotlib.rcParams.update({'font.size': 18})
+DPI = 100
+matplotlib.rcParams.update({'font.size': 32})
 
-## Helper code.
-#
-# http://stackoverflow.com/a/25983372
-
-def fmt(x, pos):
-    a, b = '{:.2e}'.format(x).split('e')
-    b = int(b)
-    return r'${} \times 10^{{{}}}$'.format(a, b)
-fmt = ticker.FuncFormatter(fmt)
+concat = np.concatenate
 
 # Experiment 1
 
@@ -37,29 +31,29 @@ minVal      = min(trueMSE.min(), sureFullMSE.min());
 sureCalMSE  = sureCalMSE - sureCalMSE.min() + minVal;
 maxVal      = max(trueMSE.max(), sureCalMSE.max(), sureFullMSE.max())
 
-step   = 10 ** (floor(log10(minVal))-1);
-levels = list(range(floor(minVal), ceil(maxVal + step), step))
+levels  = np.arange(np.floor(np.log10(minVal) * 10)/10, np.ceil(np.log10(maxVal) * 10)/10, 0.001)
 
-fig = plt.figure(figsize=(10, 8))
-cp = plt.contourf(lst_w, lst_c, trueMSE, levels = levels, cmap = plt.get_cmap("jet"))
-plt.title('True Squared Error'); plt.xlabel('Subspace size (WNSVN)'); plt.ylabel('Crop threshold(c)');
-#cb = plt.colorbar(format=fmt)
-cb = plt.colorbar()
-plt.savefig('pdf/experiment_1_1.pdf'); plt.close(fig)
+if not isfile('res/experiment_1_3.png'):
+  fig = plt.figure(figsize=(15, 15))
+  cp = plt.contourf(lst_w, lst_c, np.log10(trueMSE), levels=levels, cmap='jet', vmin=levels[0], vmax=levels[-1])
+  plt.title('True Squared Error'); plt.xlabel('Subspace size (WNSVN)'); plt.ylabel('Crop threshold(c)');
+  cb = plt.colorbar()
+  cb.ax.set_yticklabels([(r'$10^{%0.2f}$' % float(elm.get_text())) for elm in cb.ax.get_yticklabels()])
+  plt.savefig('res/experiment_1_1.png', dpi=DPI); plt.close(fig)
 
-fig = plt.figure(figsize=(10, 8))
-cp = plt.contourf(lst_w, lst_c, sureFullMSE, levels = levels, cmap = plt.get_cmap("jet"))
-plt.title('SURE (Full Data)'); plt.xlabel('Subspace size (WNSVN)'); plt.ylabel('Crop threshold(c)');
-#cb = plt.colorbar(format=fmt)
-cb = plt.colorbar()
-plt.savefig('pdf/experiment_1_2.pdf'); plt.close(fig)
+  fig = plt.figure(figsize=(15, 15))
+  cp = plt.contourf(lst_w, lst_c, np.log10(sureFullMSE), levels=levels, cmap='jet', vmin=levels[0], vmax=levels[-1])
+  plt.title('SURE (Full Data)'); plt.xlabel('Subspace size (WNSVN)'); plt.ylabel('Crop threshold(c)');
+  cb = plt.colorbar()
+  cb.ax.set_yticklabels([(r'$10^{%0.2f}$' % float(elm.get_text())) for elm in cb.ax.get_yticklabels()])
+  plt.savefig('res/experiment_1_2.png', dpi=DPI); plt.close(fig)
 
-fig = plt.figure(figsize=(10, 8))
-cp = plt.contourf(lst_w, lst_c, sureCalMSE, levels = levels, cmap = plt.get_cmap("jet"))
-plt.title('Normalized SURE (Calib. Data)'); plt.xlabel('Subspace size (WNSVN)'); plt.ylabel('Crop threshold(c)');
-#cb = plt.colorbar(format=fmt)
-cb = plt.colorbar()
-plt.savefig('pdf/experiment_1_3.pdf'); plt.close(fig)
+  fig = plt.figure(figsize=(15, 15))
+  cp = plt.contourf(lst_w, lst_c, np.log10(sureCalMSE), levels=levels, cmap='jet', vmin=levels[0], vmax=levels[-1])
+  plt.title('Normalized SURE (Calib. Data)'); plt.xlabel('Subspace size (WNSVN)'); plt.ylabel('Crop threshold(c)');
+  cb = plt.colorbar()
+  cb.ax.set_yticklabels([(r'$10^{%0.2f}$' % float(elm.get_text())) for elm in cb.ax.get_yticklabels()])
+  plt.savefig('res/experiment_1_3.png', dpi=DPI); plt.close(fig)
 
 # Experiment 2
 
@@ -77,12 +71,18 @@ minVal      = min(trueMSE.min(), sureFullMSE.min());
 sureCalMSE  = sureCalMSE - sureCalMSE.min() + minVal;
 maxVal      = max(trueMSE.max(), sureCalMSE.max(), sureFullMSE.max())
 
-fig = plt.figure(figsize=(10, 9))
-#plt.semilogy(lst_c, trueMSE, 'r-'); plt.semilogy(lst_c, sureFullMSE, 'g+'); plt.semilogy(lst_c, sureCalMSE, 'bo');
-plt.plot(lst_c, trueMSE, 'r-'); plt.plot(lst_c, sureFullMSE, 'g+'); plt.plot(lst_c, sureCalMSE, 'bo');
-#plt.legend(['True Squared Error', 'SURE (Full Data)', 'Normalized SURE (Calib. Data)']); 
-plt.xlabel('Crop threshold (c)'); plt.ylabel('Squared Error');
-plt.savefig('pdf/experiment_2.pdf'); plt.close(fig);
+if True:
+  fig = plt.figure(figsize=(15, 15))
+  ax  = plt.gca();
+  ax.plot(lst_c, np.log10(trueMSE),     'r-',  linewidth=5);
+  ax.plot(lst_c, np.log10(sureFullMSE), 'b--', linewidth=5, alpha=0.75);
+  ax.plot(lst_c, np.log10(sureCalMSE),  'g--', linewidth=5, alpha=0.75);
+  plt.savefig('res/experiment_2.png', dpi=10); # This is to force text to be printed.
+  ax.set_yticklabels([(r'$10^{%0.2f}$' % float(elm.get_text())) for elm in ax.get_yticklabels()])
+  plt.grid(True, linestyle=':')
+  plt.xlabel('Crop threshold (c)'); plt.ylabel('Squared Error');
+  plt.legend(['True Squared Error', 'SURE (Full Data)', 'Normalized SURE (Calib. Data)']); 
+  plt.savefig('res/experiment_2.png', dpi=DPI); plt.close(fig);
 
 # Experiment 3.1
 
@@ -102,13 +102,18 @@ minVal      = min(trueMSE.min(), sureFullMSE.min());
 sureCalMSE  = sureCalMSE - sureCalMSE.min() + minVal;
 maxVal      = max(trueMSE.max(), sureCalMSE.max(), sureFullMSE.max())
 
-fig = plt.figure(figsize=(10, 9))
-#plt.semilogy(lst_k, trueMSE, 'r-'); plt.semilogy(lst_k, sureFullMSE, 'g+'); plt.semilogy(lst_k, sureCalMSE, 'bo');
-plt.plot(lst_k, trueMSE, 'r-'); plt.plot(lst_k, sureFullMSE, 'g+'); plt.plot(lst_k, sureCalMSE, 'bo');
-plt.ylim((0, 1E7));
-#plt.legend(['True Squared Error', 'SURE (Full Data)', 'Normalized SURE (Calib. Data)']); 
-plt.xlabel('Kernel size (k)'); plt.ylabel('Squared Error');
-plt.savefig('pdf/experiment_3_1.pdf'); plt.close(fig);
+if not isfile('res/experiment_3_1.png'):
+  fig = plt.figure(figsize=(15, 15))
+  ax  = plt.gca()
+  ax.plot(lst_k, np.log10(trueMSE),     'r-',  linewidth=5);
+  ax.plot(lst_k, np.log10(sureFullMSE), 'b--', linewidth=5, alpha=0.75);
+  ax.plot(lst_k, np.log10(sureCalMSE),  'g--', linewidth=5, alpha=0.75);
+  plt.savefig('res/experiment_3_1.png', dpi=10); # This is to force text to be printed.
+  ax.set_yticklabels([(r'$10^{%0.2f}$' % float(elm.get_text())) for elm in ax.get_yticklabels()])
+  plt.legend(['True Squared Error', 'SURE (Full Data)', 'Normalized SURE (Calib. Data)']); 
+  plt.grid(True, linestyle=':')
+  plt.xlabel('Kernel size (k)'); plt.ylabel('Squared Error');
+  plt.savefig('res/experiment_3_1.png', dpi=DPI); plt.close(fig);
 
 # Experiment 3.2
 
@@ -128,10 +133,129 @@ minVal      = min(trueMSE.min(), sureFullMSE.min());
 sureCalMSE  = sureCalMSE - sureCalMSE.min() + minVal;
 maxVal      = max(trueMSE.max(), sureCalMSE.max(), sureFullMSE.max())
 
-fig = plt.figure(figsize=(10, 9))
-#plt.semilogy(lst_k, trueMSE, 'r-'); plt.semilogy(lst_k, sureFullMSE, 'g+'); plt.semilogy(lst_k, sureCalMSE, 'bo');
-plt.plot(lst_k, trueMSE, 'r-'); plt.plot(lst_k, sureFullMSE, 'g+'); plt.plot(lst_k, sureCalMSE, 'bo');
-plt.ylim((0, 1E7));
-plt.legend(['True Squared Error', 'SURE (Full Data)', 'Normalized SURE (Calib. Data)']); 
-plt.xlabel('Kernel size (k)'); plt.ylabel('Squared Error');
-plt.savefig('pdf/experiment_3_2.pdf'); plt.close(fig);
+if not isfile('res/experiment_3_2.png'):
+  fig = plt.figure(figsize=(15, 15))
+  ax  = plt.gca()
+  plt.plot(lst_k, np.log10(trueMSE),     'r-',  linewidth=5)
+  plt.plot(lst_k, np.log10(sureFullMSE), 'b--', linewidth=5, alpha=0.75)
+  plt.plot(lst_k, np.log10(sureCalMSE),  'g--', linewidth=5, alpha=0.75)
+  plt.savefig('res/experiment_3_2.png', dpi=10); # This is to force text to be printed.
+  ax.set_yticklabels([(r'$10^{%0.2f}$' % float(elm.get_text())) for elm in ax.get_yticklabels()])
+  plt.legend(['True Squared Error', 'SURE (Full Data)', 'Normalized SURE (Calib. Data)']); 
+  plt.grid(True, linestyle=':')
+  plt.xlabel('Kernel size (k)'); plt.ylabel('Squared Error');
+  plt.savefig('res/experiment_3_2.png', dpi=DPI); plt.close(fig);
+
+# Experiment 4
+dct = loadmat('../exp_code/res/experiment_4_results.mat')
+nrm = lambda x: (x - np.min(x))/np.max(x - np.min(x))
+
+lst_k      = np.squeeze(dct['lst_k'])
+lst_c      = np.squeeze(dct['lst_c'])
+gmax       = np.squeeze(dct['gmax'])
+proj       = np.squeeze(dct['proj'])
+trueMSE    = nrm(np.squeeze(dct['trueMSE']))
+sureFulMSE = nrm(np.squeeze(dct['sureFullMSE']))
+sureCalMSE = nrm(np.squeeze(dct['sureCalMSE']))
+rev        = gmax * 0
+rev[np.abs(gmax) > 0] = 1/gmax[np.abs(gmax) > 0];
+
+print("Max 1/g_max:    %f" % np.max(rev));
+print("Location (c):   %f" % lst_c[np.argmax(rev)]);
+print("Min sureCalMSE: %f" % np.min(sureCalMSE));
+print("Location (c):   %f" % lst_c[np.argmin(sureCalMSE)]);
+print("Min trueMSE:    %f" % np.min(trueMSE));
+print("Location (c):   %f" % lst_c[np.argmin(trueMSE)]);
+
+if not isfile('res/experiment_4_2.png'):
+  fig, ax1 = plt.subplots(figsize=(13, 10))
+
+  color = 'tab:red'
+  ax1.set_xlabel('Crop threshold (c)')
+  ax1.set_ylabel(r'$1/g_{max}$', color=color)
+  ax1.plot(lst_c, rev, color=color, linewidth=5)
+  ax1.tick_params(axis='y', labelcolor=color)
+  ax1.set_xlim([-0.1, 1.1])
+  ax1.set_ylim([-0.1, 1.1])
+  #ax1.set_xticks(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(rev))
+  #ax1.set_xticklabels(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(rev))
+
+  ax2 = ax1.twinx()
+
+  color = 'tab:blue'
+  ax2.set_ylabel('Normalized Squared Error', color=color)
+  ax2.plot(lst_c, trueMSE, color=color, linewidth=5)
+  ax2.tick_params(axis='y', labelcolor=color)
+  ax2.axvline(x=lst_c[np.argmin(trueMSE)], color='g', linestyle='--', alpha=0.75, linewidth=3)
+  ax2.axvline(x=lst_c[np.argmax(rev)], color='goldenrod', linestyle='--', alpha=0.75, linewidth=3)
+  ax2.axvline(x=0.7, color='m', linestyle='--', alpha=0.75, linewidth=3)
+  #ax2.set_xticks(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(trueMSE))
+  #ax2.set_xticklabels(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(trueMSE))
+  ax2.set_xlim([-0.1, 1.1])
+  ax2.set_ylim([-0.1, 1.1])
+
+  ax2.plot(lst_c[np.argmin(trueMSE)], trueMSE[np.argmin(trueMSE)], 'gx', mew=2, ms=15, linewidth=3)
+  ax1.plot(lst_c[np.argmin(trueMSE)],     rev[np.argmin(trueMSE)], 'gx', mew=2, ms=15, linewidth=3)
+  ax2.plot(lst_c[np.argmax(rev)], trueMSE[np.argmax(rev)], color='orange', marker='x', mew=2, ms=15, linewidth=3)
+  ax1.plot(lst_c[np.argmax(rev)],     rev[np.argmax(rev)], color='orange', marker='x', mew=2, ms=15)
+  ax2.plot(0.7, trueMSE[lst_c == 0.7], color='m', marker='x', mew=2, ms=15, linewidth=3)
+  ax1.plot(0.7,     rev[lst_c == 0.7], color='m', marker='x', mew=2, ms=15, linewidth=3)
+
+  ax1.xaxis.grid(True, linestyle='--')
+  ax1.yaxis.grid(True, linestyle='--')
+
+  plt.savefig('res/experiment_4_1.png', dpi=DPI); plt.close(fig);
+
+  fig, ax = plt.subplots(figsize=(10, 9))
+
+  proj[:, proj.shape[1]//2:, :] = 4 * proj[:, proj.shape[1]//2:, :]
+  proj = concat((proj[:,:,0], proj[:,:,1], proj[:,:,2]),axis=1);
+
+  ax.imshow(np.abs(proj), cmap='gray', vmax=0.75)
+  ax.axis('off')
+
+  plt.savefig('res/experiment_4_2.png', dpi=DPI); plt.close(fig);
+
+# Experiment 5
+
+dct = loadmat('../exp_code/res/experiment_5_results.mat')
+
+lst_r   = np.squeeze(dct['lst_r'])
+trueMSE = np.squeeze(dct['trueMSE'])
+
+if not isfile('res/experiment_5.png'):
+  fig, ax = plt.subplots(figsize=(12, 10))
+  ax.plot(lst_r, trueMSE, 'b-', linewidth=5)
+  ax.set_xlabel('Calibration size (r)')
+  ax.set_ylabel('True Squared Error');
+  ax.ticklabel_format(axis='y', scilimits=(0, 0), useMathText=True)
+  ax.grid()
+  plt.savefig('res/experiment_5.png', dpi=DPI); plt.close(fig);
+
+# Experiment 6
+
+dct = loadmat('../exp_code/res/experiment_6_results.mat')
+
+lst_k     = np.squeeze(dct['lst_k'])
+revmax2x1 = np.squeeze(dct['revmax2x1'])
+revmax2x2 = np.squeeze(dct['revmax2x2'])
+revavg2x1 = np.squeeze(dct['revavg2x1'])
+revavg2x2 = np.squeeze(dct['revavg2x2'])
+
+if not isfile('res/experiment_6.png'):
+  fig, ax = plt.subplots(figsize=(15, 12))
+  ax.plot(lst_k, revavg2x1, 'r-', linewidth=5)
+  ax.plot(lst_k, revavg2x2, 'b-', linewidth=5)
+  ax.plot(lst_k, revmax2x1, 'r:', linewidth=5)
+  ax.plot(lst_k, revmax2x2, 'b:', linewidth=5)
+
+  ax.set_xlabel('Kernel Size (k)')
+  ax.set_ylabel(r'$1/g$');
+  ax.set_ylim([0, 1])
+  ax.ticklabel_format(axis='y', scilimits=(0, 0), useMathText=True)
+  ax.grid()
+  ax.legend([r'$R = (2 \times 1)\;\rightarrow\;1/g_{avg}$', \
+             r'$R = (2 \times 2)\;\rightarrow\;1/g_{avg}$', \
+             r'$R = (2 \times 1)\;\rightarrow\;1/g_{max}$', \
+             r'$R = (2 \times 2)\;\rightarrow\;1/g_{max}$'])
+  plt.savefig('res/experiment_6.png', dpi=DPI); plt.close(fig);

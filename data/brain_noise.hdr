@@ -1,2 +1,8 @@
 # Dimensions
-230 180 8 1 1 
+230 180 8 1 1 1 1 1 1 1 1 1 1 1 1 1 
+# Command
+noise -n 16 data/brain_clean data/brain_noise 
+# Files
+ >data/brain_noise <data/brain_clean
+# Creator
+BART v0.4.04-54-g28b2392
