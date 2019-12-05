@@ -28,4 +28,4 @@ All rights/distribution are the same as for the original code,
 and should cite the original author and webpage.
 
 ## DOI
-[![DOI](https://zenodo.org/badge/145603994.svg)](https://zenodo.org/badge/latestdoi/145603994)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3564848.svg)](https://doi.org/10.5281/zenodo.3564848)
