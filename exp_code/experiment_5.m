@@ -34,8 +34,8 @@ trueMSE = lst_r * 0;
 for rdx=1:numel(lst_r)
   fprintf('On %02d of %02d.\n', rdx, numel(lst_r));
   fileID = fopen(sprintf('log/log_experiment_5_%d.txt', lst_r(rdx)), 'w');
-  [trueMSEr, trueOptParamr, ~, ~, ~, ~, ~] = ...
-    compareMSE(fileID, X, Y, lst_r(rdx), true, stdev, lst_k, lst_c, true, true);
+  [trueMSEr, trueOptParamr, ~, ~, ~, ~, ~, ~] = ...
+    compareMSE(fileID, X, Y, lst_r(rdx), true, stdev, lst_k, lst_c);
   fclose(fileID);
   trueMSE(rdx) = min(trueMSEr(:));
 end

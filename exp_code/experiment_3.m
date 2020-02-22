@@ -30,7 +30,7 @@ lst_c = 0:0.05:0.95;
 lst_w = 0:0.25:nc;
 
 fileID = fopen('log/log_experiment_3_noweight.txt', 'w');
-[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam] = ...
+[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, ~, ~] = ...
   compareMSE(fileID, X, Y, r, false, stdev, lst_k, lst_c, lst_w);
 fclose(fileID);
 
@@ -52,7 +52,7 @@ end
 save('res/experiment_3_results_noweight.mat', 'lst_k', 'lst_c', 'lst_w', 'trueMSE', 'trueOptParam', 'sureFullMSE', 'sureFullOptParam', 'sureCalMSE', 'sureCalOptParam');
 
 fileID = fopen('log/log_experiment_3_weight.txt', 'w');
-[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, ~] = ...
+[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, ~, ~] = ...
   compareMSE(fileID, X, Y, r, true, stdev, lst_k, lst_c);
 fclose(fileID);
 

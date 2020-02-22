@@ -1,4 +1,4 @@
-function [trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, gmax] = compareMSE(fileID, X, Y, r, weight, stdev, lst_k, lst_c, lst_wnsvn, gfactor)
+function [trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, gmax, gavg] = compareMSE(fileID, X, Y, r, weight, stdev, lst_k, lst_c, lst_wnsvn, gfactor, fov)
 
   if (nargin < 10)
     gfactor = false;
@@ -22,8 +22,10 @@ function [trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sure
     sureCalMSE  = zeros([length(lst_k), length(lst_c), length(lst_wnsvn)]);
     if (gfactor)
       gmax      = zeros([length(lst_k), length(lst_c), length(lst_wnsvn)]);
+      gavg      = zeros([length(lst_k), length(lst_c), length(lst_wnsvn)]);
     else
       gmax      = -1;
+      gavg      = -1;
     end
   else
     trueMSE     = zeros([length(lst_k), length(lst_c)]);
@@ -31,8 +33,10 @@ function [trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sure
     sureCalMSE  = zeros([length(lst_k), length(lst_c)]);
     if (gfactor)
       gmax      = zeros([length(lst_k), length(lst_c)]);
+      gavg      = zeros([length(lst_k), length(lst_c)]);
     else
       gmax      = -1;
+      gavg      = -1;
     end
   end
 
@@ -43,19 +47,19 @@ function [trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sure
     A = calreg2calmat(C, k); 
     if (weight == true)
       if (gfactor)
-        [trueMSE(kdx, :), sureFullMSE(kdx, :), sureCalMSE(kdx, :), gmax(kdx, :)] = ...
-          softMSE(A, r, k, lst_c, stdev, I, x, yf, yc, gfactor, fileID);
+        [trueMSE(kdx, :), sureFullMSE(kdx, :), sureCalMSE(kdx, :), gmax(kdx, :), gavg(kdx, :)] = ...
+          softMSE(A, r, k, lst_c, stdev, I, x, yf, yc, gfactor, fov, fileID);
       else
         [trueMSE(kdx, :), sureFullMSE(kdx, :), sureCalMSE(kdx, :), ~] = ...
-          softMSE(A, r, k, lst_c, stdev, I, x, yf, yc, gfactor, fileID);
+          softMSE(A, r, k, lst_c, stdev, I, x, yf, yc, gfactor, fov, fileID);
       end
     else
       if (gfactor)
-        [trueMSE(kdx, :, :), sureFullMSE(kdx, :, :), sureCalMSE(kdx, :, :), gmax(kdx, :)] = ...
-          hardMSE(A, r, k, lst_c, lst_wnsvn, stdev, I, x, yf, yc, gfactor, fileID);
+        [trueMSE(kdx, :, :), sureFullMSE(kdx, :, :), sureCalMSE(kdx, :, :), gmax(kdx, :), gavg(kdx, :)] = ...
+          hardMSE(A, r, k, lst_c, lst_wnsvn, stdev, I, x, yf, yc, gfactor, fov, fileID);
       else
         [trueMSE(kdx, :, :), sureFullMSE(kdx, :, :), sureCalMSE(kdx, :, :), ~] = ...
-          hardMSE(A, r, k, lst_c, lst_wnsvn, stdev, I, x, yf, yc, gfactor, fileID);
+          hardMSE(A, r, k, lst_c, lst_wnsvn, stdev, I, x, yf, yc, gfactor, fov, fileID);
       end
     end
   end
@@ -98,7 +102,7 @@ function [trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sure
   end
 end
 
-function [trueMSE, sureFullMSE, sureCalMSE, gmax] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor);
+function [trueMSE, sureFullMSE, sureCalMSE, gmax, gavg] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor, fov);
   nc   = size(x, 3);
   maps = cropEigvec(M, W, c);
   T    = zeros(size(maps)); % To calculate the projection operator (maps * maps')
@@ -152,26 +156,31 @@ function [trueMSE, sureFullMSE, sureCalMSE, gmax] = pointMSE(M, W, r, c, stdev, 
   sureCalMSE = (r * r * nc) * stdev^2 + norm(null(:), 2)^2 + 2 * stdev^2 * div;
 
   if (gfactor)
-    gmax = calcGFactor(squeeze(maps(:,:,:,end)), 2, 2);
-    gmax = gmax(abs(gmax(:)) > 0);
-    gmax = max(gmax(:));
+    gfact = fov .* calcGFactor(squeeze(maps(:,:,:,end)), 2, 2);
+    gfact = gfact(abs(gfact(:)) > 0);
+    gmax = max(gfact(:));
+    gavg = mean(gfact(:));
     if (numel(gmax) < 1)
       gmax = 0;
+      gavg = 0;
     end
   else
     gmax = -1;
+    gavg = -1;
   end
 end
 
-function [trueMSE, sureFullMSE, sureCalMSE, gmax] = softMSE(A, r, k, lst_c, stdev, I, x, yf, yc, gfactor, fileID)
+function [trueMSE, sureFullMSE, sureCalMSE, gmax, gavg] = softMSE(A, r, k, lst_c, stdev, I, x, yf, yc, gfactor, fov, fileID)
   nc          = size(x, 3);
   trueMSE     = zeros([length(lst_c), 1]);
   sureFullMSE = zeros([length(lst_c), 1]);
   sureCalMSE  = zeros([length(lst_c), 1]);
   if (gfactor)
     gmax      = zeros([length(lst_c), 1]);
+    gavg      = zeros([length(lst_c), 1]);
   else
     gmax      = -1;
+    gavg      = -1;
   end
 
   [U, S, V] = svd(A); s = diag(S);
@@ -190,22 +199,24 @@ function [trueMSE, sureFullMSE, sureCalMSE, gmax] = softMSE(A, r, k, lst_c, stde
     fprintf(fileID, '| | c = %0.3f\n', c);
     cdx = cdx + 1;
     if (gfactor)
-      [trueMSE(cdx), sureFullMSE(cdx), sureCalMSE(cdx), gmax(cdx)] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor);
+      [trueMSE(cdx), sureFullMSE(cdx), sureCalMSE(cdx), gmax(cdx), gavg(cdx)] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor, fov);
     else
-      [trueMSE(cdx), sureFullMSE(cdx), sureCalMSE(cdx), ~] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor);
+      [trueMSE(cdx), sureFullMSE(cdx), sureCalMSE(cdx), ~, ~] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor, fov);
     end
   end
 end
 
-function [trueMSE, sureFullMSE, sureCalMSE, gmax] = hardMSE(A, r, k, lst_c, lst_wnsvn, stdev, I, x, yf, yc, gfactor, fileID)
+function [trueMSE, sureFullMSE, sureCalMSE, gmax, gavg] = hardMSE(A, r, k, lst_c, lst_wnsvn, stdev, I, x, yf, yc, gfactor, fov, fileID)
   nc          = size(x, 3);
   trueMSE     = zeros([length(lst_c), length(lst_wnsvn)]);
   sureFullMSE = zeros([length(lst_c), length(lst_wnsvn)]);
   sureCalMSE  = zeros([length(lst_c), length(lst_wnsvn)]);
   if (gfactor)
     gmax      = zeros([length(lst_c), length(lst_wnsvn)]);
+    gavg      = zeros([length(lst_c), length(lst_wnsvn)]);
   else
     gmax      = -1;
+    gavg      = -1;
   end
 
   [U, S, V] = svd(A); s = diag(S);
@@ -226,9 +237,9 @@ function [trueMSE, sureFullMSE, sureCalMSE, gmax] = hardMSE(A, r, k, lst_c, lst_
       fprintf(fileID, '| | | c = %0.3f\n', c);
       cdx = cdx + 1;
       if (gfactor)
-        [trueMSE(cdx, wdx), sureFullMSE(cdx, wdx), sureCalMSE(cdx, wdx), gmax(cdx, wdx)] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor);
+        [trueMSE(cdx, wdx), sureFullMSE(cdx, wdx), sureCalMSE(cdx, wdx), gmax(cdx, wdx), gavg(cdx, wdx)] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor, fov);
       else
-        [trueMSE(cdx, wdx), sureFullMSE(cdx, wdx), sureCalMSE(cdx, wdx), ~] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor);
+        [trueMSE(cdx, wdx), sureFullMSE(cdx, wdx), sureCalMSE(cdx, wdx), ~, ~] = pointMSE(M, W, r, c, stdev, I, x, yf, yc, gfactor, fov);
       end
     end
   end

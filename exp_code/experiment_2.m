@@ -36,7 +36,7 @@ lst_c = 0:0.01:0.99;
 lst_w = 0:1/(fix_k^2):nc;
 
 fileID = fopen('log/log_experiment_2.txt', 'w');
-[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, ~] = ...
+[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, ~, ~] = ...
   compareMSE(fileID, X, Y, r, true, stdev, fix_k, lst_c, true);
 fclose(fileID);
 

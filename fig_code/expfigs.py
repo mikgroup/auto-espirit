@@ -3,6 +3,7 @@
 import matplotlib
 matplotlib.use('SVG')
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 
 from matplotlib import colors, ticker, cm
@@ -153,15 +154,18 @@ nrm = lambda x: (x - np.min(x))/np.max(x - np.min(x))
 lst_k      = np.squeeze(dct['lst_k'])
 lst_c      = np.squeeze(dct['lst_c'])
 gmax       = np.squeeze(dct['gmax'])
+gavg       = np.squeeze(dct['gavg'])
 proj       = np.squeeze(dct['proj'])
 trueMSE    = nrm(np.squeeze(dct['trueMSE']))
 sureFulMSE = nrm(np.squeeze(dct['sureFullMSE']))
 sureCalMSE = nrm(np.squeeze(dct['sureCalMSE']))
-rev        = gmax * 0
-rev[np.abs(gmax) > 0] = 1/gmax[np.abs(gmax) > 0];
+revmax     = gmax * 0
+revmax[np.abs(gmax) > 0] = 1/gmax[np.abs(gmax) > 0];
+revavg     = gavg * 0
+revavg[np.abs(gavg) > 0] = 1/gavg[np.abs(gavg) > 0];
 
-print("Max 1/g_max:    %f" % np.max(rev));
-print("Location (c):   %f" % lst_c[np.argmax(rev)]);
+print("Max 1/g_max:    %f" % np.max(revmax));
+print("Location (c):   %f" % lst_c[np.argmax(revmax)]);
 print("Min sureCalMSE: %f" % np.min(sureCalMSE));
 print("Location (c):   %f" % lst_c[np.argmin(sureCalMSE)]);
 print("Min trueMSE:    %f" % np.min(trueMSE));
@@ -170,15 +174,21 @@ print("Location (c):   %f" % lst_c[np.argmin(trueMSE)]);
 if not isfile('res/experiment_4_2.png'):
   fig, ax1 = plt.subplots(figsize=(13, 10))
 
-  color = 'tab:red'
   ax1.set_xlabel('Crop threshold (c)')
-  ax1.set_ylabel(r'$1/g_{max}$', color=color)
-  ax1.plot(lst_c, rev, color=color, linewidth=5)
-  ax1.tick_params(axis='y', labelcolor=color)
+  ax1.set_ylabel(r'$1/g$', color='black')
+  line1 = ax1.plot(lst_c, revmax, color='tab:red', linewidth=5)
+  line2 = ax1.plot(lst_c, revavg, color='lime',    linewidth=5)
+  ax1.tick_params(axis='y', labelcolor='black')
   ax1.set_xlim([-0.1, 1.1])
   ax1.set_ylim([-0.1, 1.1])
-  #ax1.set_xticks(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(rev))
-  #ax1.set_xticklabels(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(rev))
+
+  red  = mpatches.Patch(color='red',   label=r'$1/g_{max}$')
+  lime = mpatches.Patch(color='lime', label=r'$1/g_{avg}$')
+
+  ax1.legend(handles=[red, lime])
+
+  #ax1.set_xticks(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(revmax))
+  #ax1.set_xticklabels(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(revmax))
 
   ax2 = ax1.twinx()
 
@@ -187,7 +197,7 @@ if not isfile('res/experiment_4_2.png'):
   ax2.plot(lst_c, trueMSE, color=color, linewidth=5)
   ax2.tick_params(axis='y', labelcolor=color)
   ax2.axvline(x=lst_c[np.argmin(trueMSE)], color='g', linestyle='--', alpha=0.75, linewidth=3)
-  ax2.axvline(x=lst_c[np.argmax(rev)], color='goldenrod', linestyle='--', alpha=0.75, linewidth=3)
+  ax2.axvline(x=lst_c[np.argmax(revmax)], color='goldenrod', linestyle='--', alpha=0.75, linewidth=3)
   ax2.axvline(x=0.7, color='m', linestyle='--', alpha=0.75, linewidth=3)
   #ax2.set_xticks(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(trueMSE))
   #ax2.set_xticklabels(np.array([0, 0.25, 0.5, 0.75, 1]) * np.max(trueMSE))
@@ -195,11 +205,16 @@ if not isfile('res/experiment_4_2.png'):
   ax2.set_ylim([-0.1, 1.1])
 
   ax2.plot(lst_c[np.argmin(trueMSE)], trueMSE[np.argmin(trueMSE)], 'gx', mew=2, ms=15, linewidth=3)
-  ax1.plot(lst_c[np.argmin(trueMSE)],     rev[np.argmin(trueMSE)], 'gx', mew=2, ms=15, linewidth=3)
-  ax2.plot(lst_c[np.argmax(rev)], trueMSE[np.argmax(rev)], color='orange', marker='x', mew=2, ms=15, linewidth=3)
-  ax1.plot(lst_c[np.argmax(rev)],     rev[np.argmax(rev)], color='orange', marker='x', mew=2, ms=15)
+  ax1.plot(lst_c[np.argmin(trueMSE)],  revmax[np.argmin(trueMSE)], 'gx', mew=2, ms=15, linewidth=3)
+  ax1.plot(lst_c[np.argmin(trueMSE)],  revavg[np.argmin(trueMSE)], 'gx', mew=2, ms=15, linewidth=3)
+
+  ax2.plot(lst_c[np.argmax(revmax)], trueMSE[np.argmax(revmax)], color='orange', marker='x', mew=2, ms=15, linewidth=3)
+  ax1.plot(lst_c[np.argmax(revmax)],  revmax[np.argmax(revmax)], color='orange', marker='x', mew=2, ms=15, linewidth=3)
+  ax1.plot(lst_c[np.argmax(revmax)],  revavg[np.argmax(revmax)], color='orange', marker='x', mew=2, ms=15, linewidth=3)
+
   ax2.plot(0.7, trueMSE[lst_c == 0.7], color='m', marker='x', mew=2, ms=15, linewidth=3)
-  ax1.plot(0.7,     rev[lst_c == 0.7], color='m', marker='x', mew=2, ms=15, linewidth=3)
+  ax1.plot(0.7,  revmax[lst_c == 0.7], color='m', marker='x', mew=2, ms=15, linewidth=3)
+  ax1.plot(0.7,  revavg[lst_c == 0.7], color='m', marker='x', mew=2, ms=15, linewidth=3)
 
   ax1.xaxis.grid(True, linestyle='--')
   ax1.yaxis.grid(True, linestyle='--')

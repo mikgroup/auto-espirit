@@ -23,6 +23,7 @@ stdev =  4;
 m  = readcfl('../data/maps');
 X  = readcfl('../data/brain_clean');
 Y  = readcfl('../data/brain_noise');
+F  = readcfl('../data/brain_fov');
 nc = size(Y, 3);
 x  = nrm(sum(bsxfun(@times, F_inv(X, [1,2]), conj(m)), 3));
 x  = x(:,:,:,1);
@@ -54,8 +55,8 @@ Z = bsxfun(@times, Y, mask);
 z = F_inv(Z, [1, 2]);
 
 fileID = fopen('log/log_experiment_4.txt', 'w');
-[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, gmax] = ...
-  compareMSE(fileID, X, Y, r, true, stdev, fix_k, lst_c, true, true);
+[trueMSE, trueOptParam, sureFullMSE, sureFullOptParam, sureCalMSE, sureCalOptParam, gmax, gavg] = ...
+  compareMSE(fileID, X, Y, r, true, stdev, fix_k, lst_c, true, true, F);
 fclose(fileID);
 
 rev = gmax * 0;
@@ -86,4 +87,4 @@ end
 
 trueImage = x;
 
-save('res/experiment_4_results.mat', 'lst_k', 'lst_c', 'trueMSE', 'trueOptParam', 'sureFullMSE', 'sureFullOptParam', 'sureCalMSE', 'sureCalOptParam', 'gmax', 'maps', 'proj', 'trueImage');
+save('res/experiment_4_results.mat', 'lst_k', 'lst_c', 'trueMSE', 'trueOptParam', 'sureFullMSE', 'sureFullOptParam', 'sureCalMSE', 'sureCalOptParam', 'gmax', 'gavg', 'maps', 'proj', 'trueImage');
